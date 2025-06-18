@@ -1,44 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudflare RealtimeKit Voice Chat with Gemini</title>
-    <!-- Include Tailwind CSS CDN for styling -->
+    <title>Cloudflare RealtimeKit 语音房 Demo</title>
+    <!-- 引入 Tailwind CSS CDN，用于快速样式化 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Include Inter font for better typography -->
+    <!-- 引入 Inter 字体，提升视觉效果 -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for aesthetic and responsiveness */
+        /* 自定义样式，确保页面美观和响应式 */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light gray background */
+            background-color: #f0f4f8; /* 轻微的灰色背景 */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Ensure full viewport height */
+            min-height: 100vh; /* 确保全屏高 */
             margin: 0;
-            padding: 20px; /* Add overall padding */
+            padding: 20px; /* 增加整体内边距 */
             box-sizing: border-box;
         }
         .container {
             background-color: #ffffff;
-            padding: 2.5rem; /* Increased padding */
-            border-radius: 1.5rem; /* Rounded corners */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
-            max-width: 500px; /* Limit max width */
+            padding: 2.5rem; /* 增加内边距 */
+            border-radius: 1.5rem; /* 更圆润的边角 */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 柔和的阴影 */
+            max-width: 500px; /* 限制最大宽度 */
             width: 100%;
-            border: 1px solid #e2e8f0; /* Thin border */
+            border: 1px solid #e2e8f0; /* 细边框 */
         }
-        input, button, textarea {
-            border-radius: 0.75rem; /* Uniform rounded corners */
-            padding: 0.75rem 1rem; /* Uniform padding */
-            margin-bottom: 1rem; /* Uniform spacing */
+        input, button {
+            border-radius: 0.75rem; /* 统一圆角 */
+            padding: 0.75rem 1rem; /* 统一内边距 */
+            margin-bottom: 1rem; /* 统一间距 */
             font-size: 1rem;
             width: 100%;
             box-sizing: border-box;
         }
-        input, textarea {
+        input {
             border: 1px solid #cbd5e1;
             background-color: #f8fafc;
         }
@@ -47,21 +47,21 @@
             transition: background-color 0.2s, transform 0.1s;
         }
         button:hover {
-            transform: translateY(-1px); /* Slight lift on hover */
+            transform: translateY(-1px); /* 悬停微动效果 */
         }
         button:active {
-            transform: translateY(0); /* Press down effect on click */
+            transform: translateY(0); /* 点击下沉效果 */
         }
         .btn-primary {
-            background-color: #3b82f6; /* Blue */
+            background-color: #3b82f6; /* 蓝色 */
             color: white;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* Button shadow */
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* 按钮阴影 */
         }
         .btn-primary:hover {
             background-color: #2563eb;
         }
         .btn-secondary {
-            background-color: #ef4444; /* Red */
+            background-color: #ef4444; /* 红色 */
             color: white;
             box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
         }
@@ -69,12 +69,12 @@
             background-color: #dc2626;
         }
         .btn-toggle {
-            background-color: #22c55e; /* Green */
+            background-color: #22c55e; /* 绿色 */
             color: white;
             box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
         }
         .btn-toggle.active {
-            background-color: #dc2626; /* Red when muted */
+            background-color: #dc2626; /* 红色表示静音 */
             box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
         }
         .btn-toggle:hover {
@@ -88,19 +88,19 @@
             text-align: center;
         }
         .status-connected {
-            background-color: #d1fae5; /* Light green */
+            background-color: #d1fae5; /* 浅绿 */
             color: #065f46;
         }
         .status-disconnected {
-            background-color: #fee2e2; /* Light red */
+            background-color: #fee2e2; /* 浅红 */
             color: #991b1b;
         }
-        .participant-list, .llm-section {
-            background-color: #f1f5f9; /* Light gray background */
+        .participant-list {
+            background-color: #f1f5f9; /* 浅灰背景 */
             padding: 1rem;
             border-radius: 0.75rem;
             margin-top: 1.5rem;
-            min-height: 80px; /* Ensure list has minimum height */
+            min-height: 80px; /* 确保列表有最小高度 */
             border: 1px solid #e2e8f0;
         }
         .participant-item {
@@ -115,18 +115,18 @@
         .mic-icon {
             margin-right: 0.5rem;
             font-size: 1.2rem;
-            width: 24px; /* Fixed width to prevent layout shifts */
+            width: 24px; /* 固定宽度，避免布局抖动 */
             text-align: center;
         }
         .mic-on {
-                color: #22c55e; /* Green */
+                color: #22c55e; /* 绿色 */
         }
         .mic-off {
-                color: #ef4444; /* Red */
+                color: #ef4444; /* 红色 */
         }
         h2 {
             font-weight: 700;
-            font-size: 1.75rem; /* Larger title */
+            font-size: 1.75rem; /* 更大的标题 */
             color: #1a202c;
             margin-bottom: 1.5rem;
             text-align: center;
@@ -137,87 +137,44 @@
             font-weight: 500;
             color: #475569;
         }
-        .llm-response {
-            background-color: #e0f2fe; /* Light blue background */
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-top: 1rem;
-            white-space: pre-wrap; /* Preserve whitespace and line breaks */
-            font-size: 0.95rem;
-            color: #0f4c81;
-            border: 1px solid #90caf9;
-            max-height: 200px; /* Limit height and add scrollbar */
-            overflow-y: auto;
-        }
-        .loading-indicator {
-            display: none; /* Hidden by default */
-            text-align: center;
-            font-size: 1rem;
-            color: #64748b;
-            margin-top: 1rem;
-        }
-        .loading-indicator::after {
-            content: '';
-            animation: loading-dots 1.2s infinite;
-        }
-        @keyframes loading-dots {
-            0% { content: '.'; }
-            33% { content: '..'; }
-            66% { content: '...'; }
-            100% { content: '.'; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Cloudflare RealtimeKit Voice Chat</h2>
+        <h2>Cloudflare RealtimeKit 语音房</h2>
         <div class="mb-4">
-            <label for="username">Your Username:</label>
-            <input type="text" id="username" placeholder="Enter your username" value="User-${Math.floor(Math.random() * 1000)}" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
+            <label for="username">你的用户名:</label>
+            <input type="text" id="username" placeholder="输入你的用户名" value="用户-${Math.floor(Math.random() * 1000)}" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
         </div>
         <div class="mb-4">
-            <label for="roomId">Room ID:</label>
-            <input type="text" id="roomId" placeholder="Enter Room ID (e.g., gaming-hangout)" value="my-gaming-room" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
+            <label for="roomId">房间 ID:</label>
+            <input type="text" id="roomId" placeholder="输入房间ID (例如: 游戏开黑房)" value="我的游戏房间" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
         </div>
-        <button id="joinButton" class="btn-primary mb-4">Join Room</button>
-        <button id="leaveButton" class="btn-secondary hidden mb-4">Leave Room</button>
-        <button id="toggleMicButton" class="btn-toggle hidden mb-4" disabled>Microphone: On</button>
+        <button id="joinButton" class="btn-primary mb-4">加入房间</button>
+        <button id="leaveButton" class="btn-secondary hidden mb-4">离开房间</button>
+        <button id="toggleMicButton" class="btn-toggle hidden mb-4" disabled>麦克风: 开启</button>
 
-        <div id="status" class="status-message status-disconnected">Disconnected</div>
+        <div id="status" class="status-message status-disconnected">未连接</div>
 
         <div class="participant-list">
-            <p class="text-sm font-semibold text-gray-600 mb-2">Participants in Room:</p>
+            <p class="text-sm font-semibold text-gray-600 mb-2">房间内的参与者:</p>
             <div id="participants">
-                <!-- Participant list will be dynamically loaded here -->
-                <p class="text-gray-500 text-sm">No participants yet.</p>
-            </div>
-        </div>
-
-        <!-- Gemini LLM Integration Section -->
-        <div class="llm-section mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Chat with Gemini AI</h3>
-            <div class="mb-4">
-                <label for="llmPrompt">Enter your question or command:</label>
-                <textarea id="llmPrompt" rows="4" placeholder="e.g., Tell me a joke." class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none"></textarea>
-            </div>
-            <button id="sendLlmPromptButton" class="btn-primary">Send to Gemini AI</button>
-            <div id="llmLoading" class="loading-indicator">AI is thinking</div>
-            <div id="llmResponse" class="llm-response hidden">
-                <!-- LLM response will be displayed here -->
+                <!-- 参与者列表将在这里动态加载 -->
+                <p class="text-gray-500 text-sm">暂无参与者。</p>
             </div>
         </div>
     </div>
 
-    <!-- Include RealtimeKit SDK CDN -->
+    <!-- 引入 RealtimeKit SDK CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@cloudflare/realtime-kit@latest/dist/realtime-kit.umd.min.js"></script>
     <script>
-        // RealtimeKit related global variables
+        // 定义全局变量
         let realtimeClient = null;
         let currentRoomId = null;
         let currentUserId = null;
-        let isMicEnabled = true; // Microphone is enabled by default
+        let isMicEnabled = true; // 麦克风默认开启状态
 
-        // Get RealtimeKit DOM elements
+        // 获取 DOM 元素
         const usernameInput = document.getElementById('username');
         const roomIdInput = document.getElementById('roomId');
         const joinButton = document.getElementById('joinButton');
@@ -226,77 +183,72 @@
         const statusDiv = document.getElementById('status');
         const participantsDiv = document.getElementById('participants');
 
-        // Get Gemini LLM DOM elements
-        const llmPromptInput = document.getElementById('llmPrompt');
-        const sendLlmPromptButton = document.getElementById('sendLlmPromptButton');
-        const llmLoadingIndicator = document.getElementById('llmLoading');
-        const llmResponseDiv = document.getElementById('llmResponse');
-
         /**
-         * Update RealtimeKit UI status
-         * Displays different messages and buttons based on connection status
+         * 更新 UI 状态
+         * 根据连接状态显示不同的消息和按钮
          * @param {string} state - 'disconnected', 'connecting', 'connected', 'error'
-         * @param {string} message - Message to display
-         * @param {boolean} showControls - Whether to show voice control buttons (mic toggle)
+         * @param {string} message - 要显示的消息
+         * @param {boolean} showControls - 是否显示语音控制按钮 (麦克风开关)
          */
         function updateUI(state, message, showControls = false) {
             statusDiv.textContent = message;
             statusDiv.className = `status-message ${state === 'disconnected' || state === 'error' ? 'status-disconnected' : 'status-connected'}`;
 
-            // Toggle visibility and disabled state of buttons based on status
+            // 根据状态切换按钮的显示和禁用状态
             joinButton.classList.toggle('hidden', state === 'connecting' || state === 'connected');
             leaveButton.classList.toggle('hidden', state !== 'connected');
             toggleMicButton.classList.toggle('hidden', !showControls);
             toggleMicButton.disabled = !showControls;
 
-            // Disable username and room ID inputs when connecting or connected
+            // 连接中或已连接时禁用用户名和房间ID输入框
             usernameInput.disabled = (state === 'connecting' || state === 'connected');
             roomIdInput.disabled = (state === 'connecting' || state === 'connected');
         }
 
         /**
-         * Update participant list UI
-         * Dynamically generates list items by iterating through the participants array
-         * @param {Array<Object>} participants - Array of participant objects, each with userId and micEnabled properties
+         * 更新参与者列表 UI
+         * 遍历参与者数组，动态生成列表项
+         * @param {Array<Object>} participants - 参与者对象数组，每个对象包含 userId 和 micEnabled 等属性
          */
         function updateParticipantsList(participants) {
-            participantsDiv.innerHTML = ''; // Clear existing list
+            participantsDiv.innerHTML = ''; // 清空现有列表
 
             if (participants.length === 0) {
-                participantsDiv.innerHTML = '<p class="text-gray-500 text-sm">No participants yet.</p>';
+                participantsDiv.innerHTML = '<p class="text-gray-500 text-sm">暂无参与者。</p>';
                 return;
             }
 
             participants.forEach(p => {
                 const participantItem = document.createElement('div');
                 participantItem.className = 'participant-item';
-                // Display different icons and colors based on microphone status
+                // 根据麦克风状态显示不同图标和颜色
                 participantItem.innerHTML = `
                     <span class="mic-icon ${p.micEnabled ? 'mic-on' : 'mic-off'}">
                         ${p.micEnabled ? '🎤' : '🔇'}
                     </span>
-                    <span class="text-gray-800">${p.userId} ${p.userId === currentUserId ? '(You)' : ''}</span>
+                    <span class="text-gray-800">${p.userId} ${p.userId === currentUserId ? '(你)' : ''}</span>
                 `;
                 participantsDiv.appendChild(participantItem);
             });
         }
 
         /**
-         * Function to get RealtimeKit auth token
-         * This function sends a request to your Cloudflare Worker.
+         * 获取 RealtimeKit auth token 的函数
+         * 此函数会向你的 Cloudflare Worker 发送请求。
          *
-         * @param {string} roomId - Room ID
-         * @param {string} userId - User ID
-         * @returns {Promise<string>} - Returns RealtimeKit auth token
+         * @param {string} roomId - 房间ID
+         * @param {string} userId - 用户ID
+         * @returns {Promise<string>} - 返回 RealtimeKit 的 auth token
          */
         async function getAuthToken(roomId, userId) {
-            // The frontend will send a request to this path; your Cloudflare Worker should be deployed and listening here.
-            // The full URL will be https://chat.doon.eu.org/get-realtimekit-token
+            // 前端会向这个路径发送请求，你的 Cloudflare Worker 应该部署并监听这个路径
+            // 完整的 URL 会是 https://chat.doon.eu.org/get-realtimekit-token
             const tokenEndpoint = `https://chat.doon.eu.org/get-realtimekit-token?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`;
             try {
-                // Send request to your backend service (Cloudflare Worker) to get the auth token
+                // 向你的后端服务 (Cloudflare Worker) 发送请求以获取 auth token
                 const response = await fetch(tokenEndpoint);
                 if (!response.ok) {
+                    // 如果响应不成功，尝试解析错误信息
                     const errorData = await response.json();
                     throw new Error(`Failed to get Auth Token: ${response.status} - ${errorData.message || JSON.stringify(errorData)}`);
                 }
@@ -307,14 +259,18 @@
                 return data.authToken;
             } catch (error) {
                 console.error("Auth Token fetch error:", error);
+                // 使用自定义模态框或消息框代替 alert()
                 const errorMessage = `Unable to get RealtimeKit Auth Token. Please ensure your Cloudflare Worker is correctly deployed and running at https://chat.doon.eu.org/get-realtimekit-token. Error: ${error.message}`;
-                alert(errorMessage); // Simplified alert, replace with custom modal in production
-                throw error;
+                // This uses alert() for simplicity, replace with a more user-friendly UI in a real application.
+                alert(errorMessage);
+                throw error; // Re-throw the error for the caller to handle
             }
         }
 
+
         /**
-         * RealtimeKit Join Room Event Listener
+         * 加入语音房间的事件监听器
+         * 获取用户输入，调用 getAuthToken，然后初始化 RealtimeKit 并加入房间
          */
         joinButton.addEventListener('click', async () => {
             currentUserId = usernameInput.value.trim();
@@ -328,50 +284,55 @@
             updateUI('connecting', 'Connecting...');
 
             try {
+                // 1. Get auth token (via backend service)
                 const authToken = await getAuthToken(currentRoomId, currentUserId);
 
+                // 2. Initialize RealtimeKit client
                 realtimeClient = new Realtime.Client({
-                    authToken: authToken
+                    authToken: authToken // Use the token obtained from the backend
                 });
 
+                // 3. Listen for various RealtimeKit events
                 realtimeClient.onRoomJoined.add(room => {
                     console.log('Successfully joined room:', room.id);
                     updateUI('connected', `Connected to room: ${room.id}`, true);
-                    isMicEnabled = true;
+                    isMicEnabled = true; // Mic is enabled by default
                     toggleMicButton.textContent = 'Microphone: On';
-                    toggleMicButton.classList.remove('active');
+                    toggleMicButton.classList.remove('active'); // Ensure mute button style is correct
                 });
 
                 realtimeClient.onRoomLeft.add(room => {
                     console.log('Left room:', room.id);
                     updateUI('disconnected', 'Disconnected');
-                    updateParticipantsList([]);
-                    realtimeClient = null;
+                    updateParticipantsList([]); // Clear participant list
+                    realtimeClient = null; // Clear client instance
                 });
 
                 realtimeClient.onParticipantsChanged.add(participants => {
                     console.log('Participant list updated:', participants);
-                    updateParticipantsList(participants);
+                    updateParticipantsList(participants); // Update participant list on UI
                 });
 
                 realtimeClient.onDisconnected.add(reason => {
                     console.warn('RealtimeKit Disconnected:', reason);
                     updateUI('disconnected', `Disconnected: ${reason}`, false);
-                    updateParticipantsList([]);
+                    updateParticipantsList([]); // Clear participant list
                     realtimeClient = null;
                 });
 
+                // 4. Join the room
                 await realtimeClient.joinRoom(currentRoomId);
 
             } catch (error) {
                 console.error('Failed to join room:', error);
                 updateUI('error', `Connection failed: ${error.message}`);
-                alert(`Failed to join room. Check console for errors.`); // Simplified alert, replace with custom modal
+                // This uses alert() for simplicity, replace with a more user-friendly UI in a real application.
+                alert(`Failed to join room. Check console for errors.`);
             }
         });
 
         /**
-         * RealtimeKit Leave Room Event Listener
+         * Event listener for leaving the voice room
          */
         leaveButton.addEventListener('click', async () => {
             if (realtimeClient) {
@@ -386,74 +347,20 @@
         });
 
         /**
-         * RealtimeKit Toggle Microphone Status Event Listener
+         * Event listener for toggling microphone status
          */
         toggleMicButton.addEventListener('click', async () => {
+            // Ensure client is connected and in a room
             if (realtimeClient && realtimeClient.currentRoom) {
                 try {
-                    isMicEnabled = !isMicEnabled;
-                    await realtimeClient.setMicEnabled(isMicEnabled);
+                    isMicEnabled = !isMicEnabled; // Toggle microphone status
+                    await realtimeClient.setMicEnabled(isMicEnabled); // Call RealtimeKit API
                     toggleMicButton.textContent = `Microphone: ${isMicEnabled ? 'On' : 'Muted'}`;
-                    toggleMicButton.classList.toggle('active', !isMicEnabled);
+                    toggleMicButton.classList.toggle('active', !isMicEnabled); // Add 'active' class for styling when muted
                 } catch (error) {
                     console.error('Failed to toggle microphone:', error);
                     alert('Failed to toggle microphone status.');
                 }
-            }
-        });
-
-        /**
-         * Send LLM Prompt Event Listener
-         */
-        sendLlmPromptButton.addEventListener('click', async () => {
-            const prompt = llmPromptInput.value.trim();
-            if (!prompt) {
-                alert('Please enter your question for Gemini AI!');
-                return;
-            }
-
-            llmLoadingIndicator.style.display = 'block'; // Show loading indicator
-            llmResponseDiv.classList.add('hidden'); // Hide previous response
-            llmResponseDiv.textContent = ''; // Clear previous response
-
-            try {
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas will inject the API key at runtime for Gemini API
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Gemini API error: ${response.status} - ${errorData.error ? errorData.error.message : JSON.stringify(errorData)}`);
-                }
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    llmResponseDiv.textContent = text;
-                    llmResponseDiv.classList.remove('hidden'); // Show AI response
-                } else {
-                    llmResponseDiv.textContent = 'Unable to get response from Gemini AI, please try again later.';
-                    llmResponseDiv.classList.remove('hidden');
-                    console.warn("Gemini API response structure unexpected:", result);
-                }
-            } catch (error) {
-                console.error('Failed to call Gemini API:', error);
-                llmResponseDiv.textContent = `Failed to call Gemini AI: ${error.message}`;
-                llmResponseDiv.classList.remove('hidden');
-                alert(`Failed to call Gemini AI: ${error.message}`); // Simplified alert, replace with custom modal
-            } finally {
-                llmLoadingIndicator.style.display = 'none'; // Hide loading indicator
             }
         });
 
