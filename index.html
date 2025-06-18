@@ -242,7 +242,9 @@
          */
         async function getAuthToken(roomId, userId) {
             // 前端会向这个路径发送请求，你的 Cloudflare Worker 应该部署并监听这个路径
-            const tokenEndpoint = `/get-realtimekit-token?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`;
+            // 注意: 这里假设 Worker 部署在与前端相同的域名下，路径为 /get-realtimekit-token
+            // 因此，如果你的前端是 chat.doon.eu.org，那么 Worker 的完整 URL 会是 https://chat.doon.eu.org/get-realtimekit-token
+            const tokenEndpoint = `https://chat.doon.eu.org/get-realtimekit-token?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`;
             try {
                 // 向你的后端服务 (例如 Cloudflare Worker) 发送请求以获取 auth token
                 const response = await fetch(tokenEndpoint);
@@ -259,7 +261,7 @@
             } catch (error) {
                 console.error("Auth Token 获取错误:", error);
                 // 使用自定义模态框或消息框代替 alert()
-                const errorMessage = `无法获取 RealtimeKit Auth Token。请确保你的 Cloudflare Worker 已正确部署并运行在 /get-realtimekit-token 路径下。错误信息: ${error.message}`;
+                const errorMessage = `无法获取 RealtimeKit Auth Token。请确保你的 Cloudflare Worker 已正确部署并运行在 https://chat.doon.eu.org/get-realtimekit-token 路径下。错误信息: ${error.message}`;
                 // 这里我们简化为 alert，实际应用中应替换为更友好的 UI，例如一个临时的消息框
                 alert(errorMessage);
                 throw error; // 重新抛出错误以便调用方处理
