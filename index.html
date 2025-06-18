@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare RealtimeKit 语音房 Demo</title>
+    <!-- 引入 Tailwind CSS CDN，用于快速样式化 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Inter 字体，提升视觉效果 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 自定义样式，确保页面美观和响应式 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* 轻微的灰色背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* 确保全屏高 */
+            margin: 0;
+            padding: 20px; /* 增加整体内边距 */
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* 增加内边距 */
+            border-radius: 1.5rem; /* 更圆润的边角 */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 柔和的阴影 */
+            max-width: 500px; /* 限制最大宽度 */
+            width: 100%;
+            border: 1px solid #e2e8f0; /* 细边框 */
+        }
+        input, button {
+            border-radius: 0.75rem; /* 统一圆角 */
+            padding: 0.75rem 1rem; /* 统一内边距 */
+            margin-bottom: 1rem; /* 统一间距 */
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input {
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+        }
+        button {
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover {
+            transform: translateY(-1px); /* 悬停微动效果 */
+        }
+        button:active {
+            transform: translateY(0); /* 点击下沉效果 */
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* 蓝色 */
+            color: white;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* 按钮阴影 */
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #ef4444; /* 红色 */
+            color: white;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+        .btn-secondary:hover {
+            background-color: #dc2626;
+        }
+        .btn-toggle {
+            background-color: #22c55e; /* 绿色 */
+            color: white;
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+        }
+        .btn-toggle.active {
+            background-color: #dc2626; /* 红色表示静音 */
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+        .btn-toggle:hover {
+            background-color: #16a34a;
+        }
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .status-connected {
+            background-color: #d1fae5; /* 浅绿 */
+            color: #065f46;
+        }
+        .status-disconnected {
+            background-color: #fee2e2; /* 浅红 */
+            color: #991b1b;
+        }
+        .participant-list {
+            background-color: #f1f5f9; /* 浅灰背景 */
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            min-height: 80px; /* 确保列表有最小高度 */
+            border: 1px solid #e2e8f0;
+        }
+        .participant-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+        .mic-icon {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+            width: 24px; /* 固定宽度，避免布局抖动 */
+            text-align: center;
+        }
+        .mic-on {
+                color: #22c55e; /* 绿色 */
+        }
+        .mic-off {
+                color: #ef4444; /* 红色 */
+        }
+        h2 {
+            font-weight: 700;
+            font-size: 1.75rem; /* 更大的标题 */
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cloudflare RealtimeKit 语音房</h2>
+        <div class="mb-4">
+            <label for="username">你的用户名:</label>
+            <input type="text" id="username" placeholder="输入你的用户名" value="用户-${Math.floor(Math.random() * 1000)}" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
+        </div>
+        <div class="mb-4">
+            <label for="roomId">房间 ID:</label>
+            <input type="text" id="roomId" placeholder="输入房间ID (例如: 游戏开黑房)" value="我的游戏房间" class="focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none">
+        </div>
+        <button id="joinButton" class="btn-primary mb-4">加入房间</button>
+        <button id="leaveButton" class="btn-secondary hidden mb-4">离开房间</button>
+        <button id="toggleMicButton" class="btn-toggle hidden mb-4" disabled>麦克风: 开启</button>
+
+        <div id="status" class="status-message status-disconnected">未连接</div>
+
+        <div class="participant-list">
+            <p class="text-sm font-semibold text-gray-600 mb-2">房间内的参与者:</p>
+            <div id="participants">
+                <!-- 参与者列表将在这里动态加载 -->
+                <p class="text-gray-500 text-sm">暂无参与者。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 RealtimeKit SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@cloudflare/realtime-kit@latest/dist/realtime-kit.umd.min.js"></script>
+    <script>
+        // 定义全局变量
+        let realtimeClient = null;
+        let currentRoomId = null;
+        let currentUserId = null;
+        let isMicEnabled = true; // 麦克风默认开启状态
+
+        // 获取 DOM 元素
+        const usernameInput = document.getElementById('username');
+        const roomIdInput = document.getElementById('roomId');
+        const joinButton = document.getElementById('joinButton');
+        const leaveButton = document.getElementById('leaveButton');
+        const toggleMicButton = document.getElementById('toggleMicButton');
+        const statusDiv = document.getElementById('status');
+        const participantsDiv = document.getElementById('participants');
+
+        /**
+         * 更新 UI 状态
+         * 根据连接状态显示不同的消息和按钮
+         * @param {string} state - 'disconnected', 'connecting', 'connected', 'error'
+         * @param {string} message - 要显示的消息
+         * @param {boolean} showControls - 是否显示语音控制按钮 (麦克风开关)
+         */
+        function updateUI(state, message, showControls = false) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${state === 'disconnected' || state === 'error' ? 'status-disconnected' : 'status-connected'}`;
+
+            // 根据状态切换按钮的显示和禁用状态
+            joinButton.classList.toggle('hidden', state === 'connecting' || state === 'connected');
+            leaveButton.classList.toggle('hidden', state !== 'connected');
+            toggleMicButton.classList.toggle('hidden', !showControls);
+            toggleMicButton.disabled = !showControls;
+
+            // 连接中或已连接时禁用用户名和房间ID输入框
+            usernameInput.disabled = (state === 'connecting' || state === 'connected');
+            roomIdInput.disabled = (state === 'connecting' || state === 'connected');
+        }
+
+        /**
+         * 更新参与者列表 UI
+         * 遍历参与者数组，动态生成列表项
+         * @param {Array<Object>} participants - 参与者对象数组，每个对象包含 userId 和 micEnabled 等属性
+         */
+        function updateParticipantsList(participants) {
+            participantsDiv.innerHTML = ''; // 清空现有列表
+
+            if (participants.length === 0) {
+                participantsDiv.innerHTML = '<p class="text-gray-500 text-sm">暂无参与者。</p>';
+                return;
+            }
+
+            participants.forEach(p => {
+                const participantItem = document.createElement('div');
+                participantItem.className = 'participant-item';
+                // 根据麦克风状态显示不同图标和颜色
+                participantItem.innerHTML = `
+                    <span class="mic-icon ${p.micEnabled ? 'mic-on' : 'mic-off'}">
+                        ${p.micEnabled ? '🎤' : '🔇'}
+                    </span>
+                    <span class="text-gray-800">${p.userId} ${p.userId === currentUserId ? '(你)' : ''}</span>
+                `;
+                participantsDiv.appendChild(participantItem);
+            });
+        }
+
+        /**
+         * 获取 RealtimeKit auth token 的模拟函数
+         * 此函数会向你的 Cloudflare Worker 发送请求。
+         *
+         * @param {string} roomId - 房间ID
+         * @param {string} userId - 用户ID
+         * @returns {Promise<string>} - 返回 RealtimeKit 的 auth token
+         */
+        async function getAuthToken(roomId, userId) {
+            // 前端会向这个路径发送请求，你的 Cloudflare Worker 应该部署并监听这个路径
+            const tokenEndpoint = `/get-realtimekit-token?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`;
+            try {
+                // 向你的后端服务 (例如 Cloudflare Worker) 发送请求以获取 auth token
+                const response = await fetch(tokenEndpoint);
+                if (!response.ok) {
+                    // 如果响应不成功，尝试解析错误信息
+                    const errorData = await response.json();
+                    throw new Error(`获取 Auth Token 失败: ${response.status} - ${errorData.message || JSON.stringify(errorData)}`);
+                }
+                const data = await response.json();
+                if (!data.authToken) {
+                    throw new Error("获取 Auth Token 失败: 响应中没有 authToken");
+                }
+                return data.authToken;
+            } catch (error) {
+                console.error("Auth Token 获取错误:", error);
+                // 使用自定义模态框或消息框代替 alert()
+                const errorMessage = `无法获取 RealtimeKit Auth Token。请确保你的 Cloudflare Worker 已正确部署并运行在 /get-realtimekit-token 路径下。错误信息: ${error.message}`;
+                // 这里我们简化为 alert，实际应用中应替换为更友好的 UI，例如一个临时的消息框
+                alert(errorMessage);
+                throw error; // 重新抛出错误以便调用方处理
+            }
+        }
+
+
+        /**
+         * 加入语音房间的事件监听器
+         * 获取用户输入，调用 getAuthToken，然后初始化 RealtimeKit 并加入房间
+         */
+        joinButton.addEventListener('click', async () => {
+            currentUserId = usernameInput.value.trim();
+            currentRoomId = roomIdInput.value.trim();
+
+            if (!currentUserId || !currentRoomId) {
+                alert('用户名和房间ID不能为空！');
+                return;
+            }
+
+            updateUI('connecting', '正在连接...');
+
+            try {
+                // 1. 获取 auth token (通过后端服务)
+                const authToken = await getAuthToken(currentRoomId, currentUserId);
+
+                // 2. 初始化 RealtimeKit 客户端
+                realtimeClient = new Realtime.Client({
+                    authToken: authToken // 使用从后端获取的 token
+                });
+
+                // 3. 监听 RealtimeKit 的各种事件
+                realtimeClient.onRoomJoined.add(room => {
+                    console.log('成功加入房间:', room.id);
+                    updateUI('connected', `已连接到房间: ${room.id}`, true);
+                    isMicEnabled = true; // 默认麦克风开启
+                    toggleMicButton.textContent = '麦克风: 开启';
+                    toggleMicButton.classList.remove('active'); // 确保静音按钮样式正确
+                });
+
+                realtimeClient.onRoomLeft.add(room => {
+                    console.log('已离开房间:', room.id);
+                    updateUI('disconnected', '已断开连接');
+                    updateParticipantsList([]); // 清空参与者列表
+                    realtimeClient = null; // 清空客户端实例
+                });
+
+                realtimeClient.onParticipantsChanged.add(participants => {
+                    console.log('参与者列表更新:', participants);
+                    updateParticipantsList(participants); // 更新 UI 上的参与者列表
+                });
+
+                realtimeClient.onDisconnected.add(reason => {
+                    console.warn('RealtimeKit 断开连接:', reason);
+                    updateUI('disconnected', `连接已断开: ${reason}`, false);
+                    updateParticipantsList([]); // 清空参与者列表
+                    realtimeClient = null;
+                });
+
+                // 4. 加入房间
+                await realtimeClient.joinRoom(currentRoomId);
+
+            } catch (error) {
+                console.error('加入房间失败:', error);
+                updateUI('error', `连接失败: ${error.message}`);
+                // 同样，这里使用 alert，实际应用中应替换为更友好的 UI
+                alert(`加入房间失败。请检查控制台错误信息。`);
+            }
+        });
+
+        /**
+         * 离开语音房间的事件监听器
+         */
+        leaveButton.addEventListener('click', async () => {
+            if (realtimeClient) {
+                try {
+                    await realtimeClient.leaveRoom();
+                    console.log('正在离开房间...');
+                } catch (error) {
+                    console.error('离开房间失败:', error);
+                    alert('离开房间失败。');
+                }
+            }
+        });
+
+        /**
+         * 切换麦克风状态的事件监听器
+         */
+        toggleMicButton.addEventListener('click', async () => {
+            // 确保客户端已连接且在房间内
+            if (realtimeClient && realtimeClient.currentRoom) {
+                try {
+                    isMicEnabled = !isMicEnabled; // 切换麦克风状态
+                    await realtimeClient.setMicEnabled(isMicEnabled); // 调用 RealtimeKit API
+                    toggleMicButton.textContent = `麦克风: ${isMicEnabled ? '开启' : '静音'}`;
+                    toggleMicButton.classList.toggle('active', !isMicEnabled); // 静音时添加 'active' 类以改变样式
+                } catch (error) {
+                    console.error('切换麦克风失败:', error);
+                    alert('切换麦克风状态失败。');
+                }
+            }
+        });
+
+        // 页面加载完成时初始化 UI 状态
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI('disconnected', '请填写信息并加入房间');
+        });
+    </script>
+</body>
+</html>
